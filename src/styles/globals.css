@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+body {
+  @apply bg-slate-800 text-slate-100;
+}
+
+.btn {
+  @apply rounded-full bg-blue-400 px-3 py-1.5;
+}
