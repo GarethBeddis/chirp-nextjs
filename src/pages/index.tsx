@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { type NextPage } from "next";
 import Head from "next/head";
+import Image from "next/image";
 import { SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 
 import { api, type RouterOutputs } from "~/utils/api";
@@ -13,14 +14,19 @@ const CreatePostWizard = () => {
 
   if (!user) return null;
 
-  console.log(user);
+  const { profileImageUrl, username } = user;
+  const altText = username
+    ? `${username}'s profile picture`
+    : "Profile picture";
 
   return (
     <div className="flex flex-grow gap-3">
-      <img
-        src={user.profileImageUrl}
-        alt="Profile Image"
+      <Image
+        src={profileImageUrl}
+        alt={altText}
         className="h-10 w-10 rounded-full"
+        width="40"
+        height="40"
       />
       <input
         placeholder="Type something"
@@ -31,6 +37,7 @@ const CreatePostWizard = () => {
 };
 
 import formatRelative from "date-fns/formatRelative";
+import { LoadingPage } from "~/components/loading";
 
 type PostWithUser = RouterOutputs["posts"]["getAll"][number];
 const PostView = (props: PostWithUser) => {
@@ -41,10 +48,12 @@ const PostView = (props: PostWithUser) => {
       className="flex flex-row gap-6 border-b border-slate-400 p-4"
       key={post.id}
     >
-      <img
+      <Image
         src={author.profilePicture}
         className="h-10 w-10 rounded-full"
-        alt="Profile image"
+        alt={`${author.username}'s profile picture`}
+        width="40"
+        height="40"
       />
       <div className="flex flex-col gap-y-2">
         <div className="flex flex-row items-center gap-1 text-slate-300">
@@ -57,12 +66,29 @@ const PostView = (props: PostWithUser) => {
   );
 };
 
-const Home: NextPage = () => {
-  const user = useUser();
-  const { data, isLoading } = api.posts.getAll.useQuery();
+const Feed = () => {
+  const { data, isLoading: postsLoading } = api.posts.getAll.useQuery();
 
-  if (isLoading) return <div>Loading...</div>;
-  if (!data) return <div>Something went wrong!</div>;
+  if (postsLoading) return <LoadingPage />;
+
+  if (!data) return <div>Something went wrong...</div>;
+
+  return (
+    <div className="flex flex-col">
+      {data?.map((fullPost) => (
+        <PostView {...fullPost} key={fullPost.post.id} />
+      ))}
+    </div>
+  );
+};
+
+const Home: NextPage = () => {
+  const { isLoaded: userLoaded, isSignedIn } = useUser();
+
+  // Start fetching posts
+  api.posts.getAll.useQuery();
+
+  if (!userLoaded) return <div></div>;
 
   return (
     <>
@@ -77,27 +103,22 @@ const Home: NextPage = () => {
         <div className="h-full w-full border-x border-slate-400 md:max-w-2xl">
           {/* Header */}
           <div className="flex flex-row items-center justify-between gap-12 border-b border-slate-400 p-4">
-            {!!user.isSignedIn && <CreatePostWizard />}
-
-            {!user.isSignedIn && (
-              <div className="btn flex justify-end">
-                <SignInButton />
-              </div>
-            )}
-
-            {!!user.isSignedIn && (
+            {!!isSignedIn && <CreatePostWizard />}
+            {!!isSignedIn && (
               <div className="btn flex justify-end">
                 <SignOutButton />
               </div>
             )}
+
+            {!isSignedIn && <div className="flex flex-grow"></div>}
+            {!isSignedIn && (
+              <div className="btn flex justify-end">
+                <SignInButton />
+              </div>
+            )}
           </div>
 
-          {/* Posts */}
-          <div className="flex flex-col">
-            {data?.map((fullPost) => (
-              <PostView {...fullPost} key={fullPost.post.id} />
-            ))}
-          </div>
+          <Feed />
         </div>
       </main>
     </>
