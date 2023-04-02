@@ -24,7 +24,6 @@ const filterUserForClient = (user: User) => {
 
 export const postsRouter = createTRPCRouter({
   getAll: publicProcedure.query(async ({ ctx }) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     const posts = await ctx.prisma.post.findMany({
       take: 100,
     });
@@ -60,7 +59,7 @@ export const postsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const authorId = ctx.user.id;
+      const authorId = ctx.userId;
 
       const post = await ctx.prisma.post.create({
         data: {

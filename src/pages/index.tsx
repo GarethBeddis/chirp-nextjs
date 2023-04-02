@@ -10,7 +10,12 @@ import { SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import { api, type RouterOutputs } from "~/utils/api";
 
 const CreatePostWizard = () => {
+  const [input, setInput] = useState("");
   const { user } = useUser();
+
+  const { mutate: createPost } = api.posts.create.useMutation();
+
+  // createPost()
 
   if (!user) return null;
 
@@ -31,13 +36,17 @@ const CreatePostWizard = () => {
       <input
         placeholder="Type something"
         className="w-full bg-transparent outline-none"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
       />
+      <button onClick={() => createPost({ content: input })}>Post</button>
     </div>
   );
 };
 
 import formatRelative from "date-fns/formatRelative";
 import { LoadingPage } from "~/components/loading";
+import { useState } from "react";
 
 type PostWithUser = RouterOutputs["posts"]["getAll"][number];
 const PostView = (props: PostWithUser) => {
@@ -70,8 +79,8 @@ const Feed = () => {
   const { data, isLoading: postsLoading } = api.posts.getAll.useQuery();
 
   if (postsLoading) return <LoadingPage />;
-
-  if (!data) return <div>Something went wrong...</div>;
+  if (!data)
+    return <div className="p-4 text-slate-300">Something went wrong...</div>;
 
   return (
     <div className="flex flex-col">
