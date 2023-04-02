@@ -7,7 +7,8 @@
     "dev": "next dev",
     "postinstall": "prisma generate",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "prisma": "prisma studio"
   },
   "dependencies": {
     "@clerk/nextjs": "^4.13.0",
@@ -17,6 +18,7 @@
     "@trpc/next": "^10.18.0",
     "@trpc/react-query": "^10.18.0",
     "@trpc/server": "^10.18.0",
+    "date-fns": "^2.29.3",
     "next": "^13.2.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",

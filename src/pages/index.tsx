@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -5,12 +6,14 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import { SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 
-import { api } from "~/utils/api";
+import { api, type RouterOutputs } from "~/utils/api";
 
 const CreatePostWizard = () => {
   const { user } = useUser();
 
   if (!user) return null;
+
+  console.log(user);
 
   return (
     <div className="flex flex-grow gap-3">
@@ -23,6 +26,33 @@ const CreatePostWizard = () => {
         placeholder="Type something"
         className="w-full bg-transparent outline-none"
       />
+    </div>
+  );
+};
+
+import formatRelative from "date-fns/formatRelative";
+
+type PostWithUser = RouterOutputs["posts"]["getAll"][number];
+const PostView = (props: PostWithUser) => {
+  const { post, author } = props;
+  const relativeTime = formatRelative(post.createdAt, new Date());
+  return (
+    <div
+      className="flex flex-row gap-6 border-b border-slate-400 p-4"
+      key={post.id}
+    >
+      <img
+        src={author.profilePicture}
+        className="h-10 w-10 rounded-full"
+        alt="Profile image"
+      />
+      <div className="flex flex-col gap-y-2">
+        <div className="flex flex-row items-center gap-1 text-slate-300">
+          <span className="">{author.username}</span>
+          <span className="text-sm font-thin">• {relativeTime}</span>
+        </div>
+        <span>{post.content}</span>
+      </div>
     </div>
   );
 };
@@ -64,10 +94,8 @@ const Home: NextPage = () => {
 
           {/* Posts */}
           <div className="flex flex-col">
-            {data?.map((post) => (
-              <div className="border-b border-slate-400 p-8" key={post.id}>
-                {post.content}
-              </div>
+            {data?.map((fullPost) => (
+              <PostView {...fullPost} key={fullPost.post.id} />
             ))}
           </div>
         </div>
